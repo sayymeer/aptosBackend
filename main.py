@@ -2,9 +2,8 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from aptos import autoCall,RiskData,placeOrder
+from aptos import autoCall,RiskData,placeOrder,PlaceOrderBody
 from market import GetRiskStats
-from pydantic import BaseModel
 
 scheduler = AsyncIOScheduler()
 scheduler.add_job(autoCall,'cron',hour=23,minute=59)
@@ -12,17 +11,8 @@ scheduler.start()
 
 app = FastAPI()
 app.add_middleware(CORSMiddleware,allow_origins='*')
-
 data = []
 
-class PlaceOrderBody(BaseModel):
-    privKey:str
-    amount:int
-    price:int
-    timestamp:int
-    date:int
-    side:bool
-    leverage:int
 
 async def UpdateData():
     global data
@@ -36,21 +26,25 @@ async def root():
 
 @app.get('/riskStat')
 async def riskStat():
+    """This will Give you the Risk"""
     return GetRiskStats(list(map(int,data)))
 
 
 @app.get('/update')
-async def marketprice():
+async def update():
+    """This will Update Data"""
     await UpdateData()
     return {'data':data}
 
 @app.get('/view')
 async def view():
+    """To View Data"""
     return {'data':data}
 
 @app.post('/placeOrder')
 async def placeOrderHandler(plc:PlaceOrderBody):
-    await placeOrder(plc.privKey,plc.amount,plc.price,plc.timestamp,plc.date,plc.side,plc.leverage)
+    """To Place Order"""
+    await placeOrder(plc)
     return "success"
 
 

@@ -1,6 +1,7 @@
 from datetime import date
 from dotenv import load_dotenv
 import os
+from pydantic import BaseModel
 
 from aptos_sdk.account import Account
 from aptos_sdk.async_client import RestClient
@@ -16,6 +17,15 @@ EXP_ORD_FUNC = os.getenv("EXP_ORD_FUNC")
 CHANGE_J_FUNC = os.getenv("CHANGE_J_FUNC")
 MARKET_PRICE_FUNC = os.getenv("MARKET_PRICE_FUNC")
 PLACE_ORDER_FUNC = os.getenv("PLACE_ORDER_FUNC")
+
+class PlaceOrderBody(BaseModel):
+    privKey:str
+    amount:int
+    price:int
+    timestamp:int
+    date:int
+    side:bool
+    leverage:int
 
 
 rest_client = RestClient(NODE_URL)
@@ -49,9 +59,9 @@ async def RiskData():
     return res['data']['data']
 
 
-async def placeOrder(privKey:str,amount:int,price:int,timestamp:int,date:int,side:bool,leverage:int):
-    account = Account.load_key(privKey)
-    trans_arg = [TransactionArgument(amount,Serializer.u64),TransactionArgument(price,Serializer.u64),TransactionArgument(timestamp,Serializer.u64),TransactionArgument(date,Serializer.u64),TransactionArgument(side,Serializer.bool),TransactionArgument(leverage,Serializer.u64)]
+async def placeOrder(req:PlaceOrderBody):
+    account = Account.load_key(req.privKey)
+    trans_arg = [TransactionArgument(req.amount,Serializer.u64),TransactionArgument(req.price,Serializer.u64),TransactionArgument(req.timestamp,Serializer.u64),TransactionArgument(req.date,Serializer.u64),TransactionArgument(req.side,Serializer.bool),TransactionArgument(req.leverage,Serializer.u64)]
     payload = TransactionPayload(
         EntryFunction.natural(
             f'{str(account.account_address)}::{MOD_NAME}',

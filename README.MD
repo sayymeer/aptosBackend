@@ -12,7 +12,7 @@ PLACE_ORDER_FUNC="place_Order"
 
 Create `.env` file like above and then run the below code to start server.
 
-```bash
+```shell
 pip3 install -r requirement.txt
 python3 main.py
 ```
